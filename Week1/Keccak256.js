@@ -1,11 +1,18 @@
-from base64 import encode
-import sha3
-import os
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.3;
 
-print("Keccak 256 di python\n")
-namaorang = input("Nama Orang: ")
-os.system('CLS')
-print("Nama Orang: \n", namaorang)
-encoded = namaorang.encode()
-obj_encoded = sha3.keccak_256(encoded)
-print("Nama orang sesudah hash Keccak 256: \n", obj_encoded.hexdigest())
+contract HashFunc {
+    function hash(string memory text, uint num, address addr) external pure returns (bytes32) {
+        return keccak256(abi.encodePacked(text, num, addr));
+    }
+    function encode(string memory text0, string memory text1) external pure returns (bytes memory) {
+        return abi.encode(text0, text1);
+    }
+    function encodePacked(string memory text0, string memory text1) external pure returns (bytes memory) {
+        return abi.encodePacked(text0, text1);
+    }
+
+    function collision(string memory text0, uint x, string memory text1) external pure returns (bytes32) {
+        return keccak256(abi.encodePacked(text0, x, text1));
+    }
+}
