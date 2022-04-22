@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package consensus implements different Ethereum consensus engines.
+// Paket konsensus mengimplementasikan mesin konsensus Ethereum yang berbeda.
 package consensus
 
 import (
@@ -27,8 +27,8 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
-// ChainHeaderReader defines a small collection of methods needed to access the local
-// blockchain during header verification.
+// ChainHeaderReader mendefinisikan kumpulan kecil metode yang diperlukan untuk mengakses lokal
+// blockchain selama verifikasi header.
 type ChainHeaderReader interface {
 	// Config retrieves the blockchain's chain configuration.
 	Config() *params.ChainConfig
@@ -49,8 +49,8 @@ type ChainHeaderReader interface {
 	GetTd(hash common.Hash, number uint64) *big.Int
 }
 
-// ChainReader defines a small collection of methods needed to access the local
-// blockchain during header and/or uncle verification.
+// ChainReader mendefinisikan kumpulan kecil metode yang diperlukan untuk mengakses lokal
+// blockchain selama verifikasi header dan/atau uncle verification.
 type ChainReader interface {
 	ChainHeaderReader
 
@@ -58,73 +58,64 @@ type ChainReader interface {
 	GetBlock(hash common.Hash, number uint64) *types.Block
 }
 
-// Engine is an algorithm agnostic consensus engine.
+// Engine adalah mesin konsensus agnostik algoritma.
 type Engine interface {
-	// Author retrieves the Ethereum address of the account that minted the given
-	// block, which may be different from the header's coinbase if a consensus
-	// engine is based on signatures.
+	// Penulis mengambil alamat Ethereum dari akun yang mencetak blok yang diberikan, 
+	// yang mungkin berbeda dari basis koin header jika mesin konsensus didasarkan pada tanda tangan.
 	Author(header *types.Header) (common.Address, error)
 
-	// VerifyHeader checks whether a header conforms to the consensus rules of a
-	// given engine. Verifying the seal may be done optionally here, or explicitly
-	// via the VerifySeal method.
+	// VerifyHeader memeriksa apakah header sesuai dengan aturan konsensus dari mesin yang diberikan. 
+	// Memverifikasi segel dapat dilakukan secara opsional di sini, atau secara eksplisit melalui metode VerifySeal.
 	VerifyHeader(chain ChainHeaderReader, header *types.Header, seal bool) error
 
-	// VerifyHeaders is similar to VerifyHeader, but verifies a batch of headers
-	// concurrently. The method returns a quit channel to abort the operations and
-	// a results channel to retrieve the async verifications (the order is that of
-	// the input slice).
+	// VerifyHeaders mirip dengan VerifyHeader, tetapi memverifikasi sekumpulan header secara bersamaan. 
+	// Metode ini mengembalikan saluran keluar untuk membatalkan operasi dan saluran hasil untuk mengambil 
+	// verifikasi asinkron (urutan adalah urutan irisan input).
 	VerifyHeaders(chain ChainHeaderReader, headers []*types.Header, seals []bool) (chan<- struct{}, <-chan error)
 
-	// VerifyUncles verifies that the given block's uncles conform to the consensus
-	// rules of a given engine.
+	// VerifyUncles memverifikasi bahwa paman blok yang diberikan 
+	// sesuai dengan aturan konsensus dari mesin yang diberikan.
 	VerifyUncles(chain ChainReader, block *types.Block) error
 
-	// Prepare initializes the consensus fields of a block header according to the
-	// rules of a particular engine. The changes are executed inline.
+	// Siapkan menginisialisasi bidang konsensus dari header blok sesuai dengan aturan mesin tertentu. 
+	// Perubahan dijalankan sebaris.
 	Prepare(chain ChainHeaderReader, header *types.Header) error
 
-	// Finalize runs any post-transaction state modifications (e.g. block rewards)
-	// but does not assemble the block.
-	//
-	// Note: The block header and state database might be updated to reflect any
-	// consensus rules that happen at finalization (e.g. block rewards).
+	// Finalize menjalankan modifikasi status pasca-transaksi apa pun (misalnya hadiah blok) tetapi tidak merakit blok.
+	// Catatan: Header blok dan database negara bagian mungkin diperbarui untuk mencerminkan aturan konsensus 
+	// apa pun yang terjadi pada finalisasi (misalnya, hadiah blok).
 	Finalize(chain ChainHeaderReader, header *types.Header, state *state.StateDB, txs []*types.Transaction,
 		uncles []*types.Header)
 
-	// FinalizeAndAssemble runs any post-transaction state modifications (e.g. block
-	// rewards) and assembles the final block.
-	//
-	// Note: The block header and state database might be updated to reflect any
-	// consensus rules that happen at finalization (e.g. block rewards).
+	// FinalizeAndAssemble menjalankan modifikasi status pasca-transaksi (misalnya hadiah blok) dan merakit blok terakhir.
+	// Catatan: Header blok dan database negara bagian mungkin diperbarui untuk 
+	// mencerminkan aturan konsensus apa pun yang terjadi pada finalisasi (misalnya, hadiah blok).
 	FinalizeAndAssemble(chain ChainHeaderReader, header *types.Header, state *state.StateDB, txs []*types.Transaction,
 		uncles []*types.Header, receipts []*types.Receipt) (*types.Block, error)
 
-	// Seal generates a new sealing request for the given input block and pushes
-	// the result into the given channel.
-	//
-	// Note, the method returns immediately and will send the result async. More
-	// than one result may also be returned depending on the consensus algorithm.
+	// Seal menghasilkan permintaan penyegelan baru untuk blok input yang diberikan dan mendorong hasilnya ke saluran yang diberikan.
+	// Catatan, metode ini segera kembali dan akan mengirimkan hasil async. 
+	// Lebih dari satu hasil juga dapat dikembalikan tergantung pada algoritma konsensus.
 	Seal(chain ChainHeaderReader, block *types.Block, results chan<- *types.Block, stop <-chan struct{}) error
 
-	// SealHash returns the hash of a block prior to it being sealed.
+	// SealHash mengembalikan hash dari sebuah blok sebelum disegel.
 	SealHash(header *types.Header) common.Hash
 
-	// CalcDifficulty is the difficulty adjustment algorithm. It returns the difficulty
-	// that a new block should have.
+	// CalcDifficulty adalah algoritma penyesuaian kesulitan. Ini mengembalikan kesulitan
+	// yang harus dimiliki oleh blok baru.
 	CalcDifficulty(chain ChainHeaderReader, time uint64, parent *types.Header) *big.Int
 
-	// APIs returns the RPC APIs this consensus engine provides.
+	// API mengembalikan API RPC yang disediakan mesin konsensus ini.
 	APIs(chain ChainHeaderReader) []rpc.API
 
-	// Close terminates any background threads maintained by the consensus engine.
+	// Tutup mengakhiri semua utas latar belakang yang dikelola oleh mesin konsensus.
 	Close() error
 }
 
-// PoW is a consensus engine based on proof-of-work.
+// PoW adalah mesin konsensus berdasarkan proof-of-work.
 type PoW interface {
 	Engine
 
-	// Hashrate returns the current mining hashrate of a PoW consensus engine.
+	// Hashrate mengembalikan hashrate penambangan saat ini dari mesin konsensus PoW.
 	Hashrate() float64
 }
